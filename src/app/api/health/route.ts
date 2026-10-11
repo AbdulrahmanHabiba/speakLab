@@ -1,0 +1,1 @@
+import {NextResponse} from 'next/server';export async function GET(){return NextResponse.json({service:'speaklab',status:'ok',storage:'browser-local',audio:'not-configured'})}
