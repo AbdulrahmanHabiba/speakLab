@@ -1,0 +1,1 @@
+SpeakLab GitHub write permission check. This file may be removed after deployment.
