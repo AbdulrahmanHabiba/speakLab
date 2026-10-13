@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String         @id @default(uuid())
+  email     String?        @unique
+  name      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  progress  UserProgress[]
+}
+
+model UserProgress {
+  id          String   @id @default(uuid())
+  userId      String
+  sessionId   String
+  completed   Boolean  @default(false)
+  quizCorrect Boolean?
+  notes       String?
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sessionId])
+}
+
+model Session {
+  id          String        @id
+  date        String
+  number      Int
+  title       String
+  section     String // 'daily' | 'hse' | 'teaching' | 'business' | 'skills' | 'english'
+  level       String
+  summary     String
+  questions   String[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  corrections Correction[]
+  vocabulary  Vocabulary[]
+  quizzes     Quiz[]
+}
+
+model Correction {
+  id        String   @id @default(uuid())
+  sessionId String
+  said      String
+  better    String
+  why       String
+  grammar   String?
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Vocabulary {
+  id        String   @id @default(uuid())
+  sessionId String
+  word      String
+  arabic    String
+  example   String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Quiz {
+  id        String   @id
+  sessionId String
+  prompt    String
+  options   String[]
+  answer    Int
+  why       String
+  hint      String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Booklet {
+  id        String          @id @default(uuid())
+  slug      String          @unique
+  track     String
+  title     String
+  subtitle  String
+  level     String
+  accent    String
+  image     String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  lessons   BookletLesson[]
+}
+
+model BookletLesson {
+  id        String        @id @default(uuid())
+  bookletId String
+  slug      String
+  title     String
+  minutes   Int
+  order     Int           @default(0)
+  booklet   Booklet       @relation(fields: [bookletId], references: [id], onDelete: Cascade)
+  blocks    LessonBlock[]
+
+  @@unique([bookletId, slug])
+}
+
+model LessonBlock {
+  id       String        @id @default(uuid())
+  lessonId String
+  type     String // 'paragraph' | 'point' | 'example' | 'image' | 'checklist'
+  title    String?
+  text     String
+  items    String[]
+  image    String?
+  source   String?
+  order    Int           @default(0)
+  lesson   BookletLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model HseGuide {
+  id              String       @id @default(uuid())
+  slug            String       @unique
+  title           String
+  arabicTitle     String
+  scenarioTitle   String?
+  scenarioArTitle String?
+  scenarioEn      String?
+  scenarioAr      String?
+  sections        HseSection[]
+}
+
+model HseSection {
+  id         String   @id @default(uuid())
+  guideId    String
+  sectionKey String
+  heading    String
+  arHeading  String
+  en         String
+  ar         String
+  reference  String?
+  url        String?
+  order      Int      @default(0)
+  guide      HseGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+}
+
+model GrammarGuide {
+  id       String   @id
+  title    String
+  ar       String
+  use      String
+  form     String
+  signals  String
+  examples String[]
+  tip      String
+  order    Int      @default(0)
+}
